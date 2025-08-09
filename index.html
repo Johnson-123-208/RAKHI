@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anna-Chelli Rakhi Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: pan-x pan-y;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        .game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+        }
+
+         /* Welcome Screen */
+        .welcome-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: elegantFlow 12s ease infinite;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: all 0.8s ease;
+            position: relative;
+        }
+
+        .welcome-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 60%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .welcome-screen > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes elegantFlow {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .welcome-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        .welcome-title {
+            color: white;
+            font-size: 3em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3), 0 0 30px rgba(255,255,255,0.5);
+            animation: titleGlow 2s ease-in-out infinite alternate;
+            background: linear-gradient(45deg, #fff, #f093fb, #fff);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            color: white;
+            font-size: 1.3em;
+            text-align: center;
+            margin-bottom: 40px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+            max-width: 80%;
+        }
+
+        .start-button {
+            background: linear-gradient(45deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+            backdrop-filter: blur(15px);
+            color: #333;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .start-button:hover::before {
+            left: 100%;
+        }
+
+        .start-button:hover {
+            background: linear-gradient(45deg, rgba(255,255,255,1), rgba(255,255,255,0.95));
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 
+                0 15px 40px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            border-color: rgba(255,255,255,0.6);
+        }
+        /* Rakhi Selection Sidebar */
+        .rakhi-sidebar {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+
+        .rakhi-sidebar.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .rakhi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255,255,255,0.5);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rakhi-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .rakhi-icon:hover::before {
+            opacity: 1;
+        }
+
+        .rakhi-icon:hover {
+            transform: scale(1.2);
+            border-color: #feca57;
+            box-shadow: 0 0 20px rgba(254, 202, 87, 0.8);
+        }
+
+        .rakhi-icon.selected {
+            border-color: #ff6b6b;
+            transform: scale(1.3);
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.9);
+            animation: selectedGlow 1s ease infinite alternate;
+        }
+
+        @keyframes selectedGlow {
+            from { box-shadow: 0 0 30px rgba(255, 107, 107, 0.9); }
+            to { box-shadow: 0 0 40px rgba(255, 107, 107, 1); }
+        }
+
+        /* Full Screen Hand */
+        .hand-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .hand-screen.visible {
+            display: flex;
+        }
+
+        .hand-container {
+            position: relative;
+            width: 80vw;
+            height: 80vh;
+            max-width: 600px;
+            max-height: 800px;
+            transform-origin: center;
+            transition: transform 0.3s ease;
+        }
+
+        .hand-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(255,255,255,0.1);
+        }
+
+        /* Rakhi Elements */
+        .rakhi-element {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            cursor: grab;
+            transition: all 0.2s ease;
+            z-index: 100;
+        }
+
+        .rakhi-element:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+
+        .rakhi-thread {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            border-radius: 2px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 99;
+        }
+
+        .rakhi-thread.visible {
+            opacity: 1;
+        }
+
+        /* Instructions */
+        .instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 15px 25px;
+            border-radius: 25px;
+            color: #333;
+            font-weight: 600;
+            z-index: 60;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+        }
+
+        .controls.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .complete-button {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            display: none;
+        }
+
+        .complete-button.visible {
+            display: block;
+            animation: completeGlow 1s ease infinite alternate;
+        }
+
+        @keyframes completeGlow {
+            from { box-shadow: 0 5px 15px rgba(255, 107, 107, 0.5); }
+            to { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.8); }
+        }
+
+        /* Celebration */
+        .celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.95), rgba(254, 202, 87, 0.95));
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+        }
+
+        .celebration.visible {
+            display: flex;
+            animation: celebrationIn 1s ease;
+        }
+
+        @keyframes celebrationIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .celebration-title {
+            color: white;
+            font-size: 3.5em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 8px rgba(0,0,0,0.3);
+            animation: celebrationBounce 1.5s ease infinite alternate;
+        }
+
+        @keyframes celebrationBounce {
+            from { transform: scale(1) rotate(-2deg); }
+            to { transform: scale(1.05) rotate(2deg); }
+        }
+
+        .anna-chelli-message {
+            color: white;
+            font-size: 1.4em;
+            text-align: center;
+            max-width: 85%;
+            line-height: 1.8;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            animation: messageFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes messageFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .restart-btn {
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .rakhi-sidebar {
+                right: 10px;
+                gap: 10px;
+            }
+            
+            .rakhi-icon {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .hand-container {
+                width: 90vw;
+                height: 70vh;
+            }
+            
+            .celebration-title {
+                font-size: 2.5em;
+            }
+            
+            .anna-chelli-message {
+                font-size: 1.1em;
+            }
+            
+            .welcome-title {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <!-- Welcome Screen -->
+    <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-title">🎀 Rakhi Celebration 🎀</div>
+        <div class="welcome-subtitle">
+            "నా ప్రియమైన అన్న/చెల్లికి రక్షా బంధన్ శుభాకాంక్షలు. ఈ బంధం ఎప్పటికీ ఇలాగే అటుటుగా ఉండాలి."<br>
+            (Wishing my dear brother/sister a Happy Raksha Bandhan. May this bond remain unbreakable forever.)
+        </div>
+        <button class="start-button" onclick="startGame()">Start Tying Rakhi with Love! 💕</button>
+    </div>
+
+    <div class="game-container">
+        <!-- Instructions -->
+        <div class="instructions" id="instructions">
+            Select a beautiful Rakhi design from the right side! ✨
+        </div>
+
+        <!-- Rakhi Selection Sidebar -->
+        <div class="rakhi-sidebar" id="rakhiSidebar">
+            <div class="rakhi-icon" data-rakhi="0" style="background-image: url('2.webp');"></div>
+            <div class="rakhi-icon" data-rakhi="1" style="background-image: url('3.webp');"></div>
+            <div class="rakhi-icon" data-rakhi="2" style="background-image: url('4.webp');"></div>
+            <div class="rakhi-icon" data-rakhi="3" style="background-image: url('5.jpg');"></div>
+        </div>
+
+        <!-- Full Screen Hand -->
+        <div class="hand-screen" id="handScreen">
+            <div class="hand-container" id="handContainer">
+                <img class="hand-image" id="handImage" 
+                     src="1.avif" 
+                     alt="Hand for Rakhi">
+                <div id="rakhiElements"></div>
+                <div id="rakhiThreads"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls" id="controls">
+            <button class="control-btn" onclick="rotateHand()">🔄 Rotate Hand</button>
+            <button class="control-btn" onclick="zoomHand()">🔍 Zoom</button>
+            <button class="control-btn complete-button" id="completeBtn" onclick="completeRakhi()">
+                ✨ Complete Rakhi Ceremony ✨
+            </button>
+        </div>
+    </div>
+
+    <!-- Celebration Screen -->
+    <div class="celebration" id="celebration">
+        <div class="celebration-title">ప్రేమ, రక్షణ, ఆనందాలతో నిండిన రాఖీ పండుగ శుభాకాంక్షలు 🎉</div>
+        <div class="anna-chelli-message">
+            "నీ చిన్ననాటి అడుగుల నుండి నీ పెద్ద కలల వరకు, నేను ఎప్పుడూ నీ వెన్నంటే ఉంటాను<br>
+            అన్న చెల్లి ప్రేమ ఎల్లప్పుడూ అలాగే ఉంటుంది<br>
+            "రాఖీ కడతా… కానీ జేబు ఖాళీ చేయడం కూడా ప్యాకేజీలో ఉంటుంది అన్నయ్య!" 😜<br>
+"అన్నయ్యా, నువ్వు రక్షిస్తావు కాబట్టి కాదు… రాఖీ కడతా, ఎందుకంటే నువ్వు గిఫ్ట్ ఇస్తావు!" 🤭<br>
+"రాఖీ అంటే బంధం… కానీ నా దృష్టిలో అది బహుమతుల బంధం!" 🎁<br>
+"చెల్లి బంధం అన్నయ్య గిఫ్ట్ తోనే బలపడుతుంది." 😆<br>
+"అన్నయ్యా, రాఖీ రోజు నువ్వు నా హీరో… కానీ గిఫ్ట్ లేకపోతే విలన్!" 🤪<br>
+"రాఖీ కడితే నువ్వు నా రక్షకుడు… కానీ షాపింగ్ కి తీసుకెళ్తే సూపర్ హీరో!" 🦸‍♂️<br>
+"అన్నయ్యా, రాఖీ అంటే నీకు టెన్షన్… నాకు ఫ్యాషన్!" 💃<br>
+"నువ్వు రక్షిస్తావు, నేను ఖర్చు పెడతా… ఇదే మన రాఖీ ఒప్పందం!" 😂<br>
+"రాఖీ రోజు గిఫ్ట్ ఇవ్వకపోతే, ఈ చెల్లి కూడా పండగ జరుపదు!" 😏<br>
+"రాఖీ బంధం కేవలం దారముకాదు, అది మన జీవితకాల హృదయ బంధం."<br>
+"చెల్లి, నువ్వు నా చిన్నపాటి సమస్యలా ఉంటావు… కానీ నా పెద్ద గర్వం." 😊<br>
+"నా చెల్లి కష్టం అనగానే, నా మనసులోని యోధుడు మేల్కొంటాడు." ⚔️<br>
+"నీ ప్రతి కల సాకారం అయ్యే వరకు, నీకు తోడుగా నిలబడతా." 🙏<br>
+"రాఖీ రోజు నాకు గుర్తు చేస్తుంది – ఈ జీవితంలో నేను ఎవరి కోసం బలంగా ఉండాలో." 💫<br>
+"రాఖీ కట్టి నిన్ను బందీ చేస్తా… కానీ లంచం (గిఫ్ట్) తీసుకుని విడిపిస్తా!" 😜 💖<br><br>
+            Happy Raksha Bandhan, My Dear Sister! 🌟"
+        </div>
+        <button class="restart-btn" onclick="restartGame()">Tie Another Rakhi! 🎀</button>
+    </div>
+
+    <script>
+        let selectedRakhi = null;
+        let gameState = 'welcome'; // welcome, selecting, tying, completed
+        let handRotation = 0;
+        let handZoom = 1;
+        let rakhiPieces = [];
+        let activeTouch = null;
+        let tiedPieces = 0;
+
+        const rakhiImages = [
+            '2.webp',
+            '3.webp',
+            '4.webp',
+            '5.jpg'
+        ];
+
+        // Create starry background
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function startGame() {
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('rakhiSidebar').classList.add('visible');
+            gameState = 'selecting';
+            
+            setTimeout(() => {
+                document.getElementById('welcomeScreen').style.display = 'none';
+            }, 800);
+        }
+
+        // Rakhi selection
+        document.querySelectorAll('.rakhi-icon').forEach(icon => {
+            icon.addEventListener('click', function() {
+                // Remove previous selection
+                document.querySelectorAll('.rakhi-icon').forEach(i => 
+                    i.classList.remove('selected'));
+                
+                // Select current rakhi
+                this.classList.add('selected');
+                selectedRakhi = parseInt(this.dataset.rakhi);
+                
+                // Show hand screen
+                setTimeout(() => {
+                    document.getElementById('handScreen').classList.add('visible');
+                    document.getElementById('controls').classList.add('visible');
+                    document.getElementById('instructions').textContent = 
+                        'Move and position Rakhi pieces around the wrist! Use multi-touch to tie! 🎯';
+                    
+                    createRakhiPieces();
+                    gameState = 'tying';
+                }, 300);
+            });
+        });
+
+        function createRakhiPieces() {
+            const container = document.getElementById('rakhiElements');
+            container.innerHTML = '';
+            rakhiPieces = [];
+            
+            // Create multiple rakhi pieces for realistic tying
+            for (let i = 0; i < 6; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'rakhi-element';
+                piece.style.backgroundImage = `url(${rakhiImages[selectedRakhi]})`;
+                piece.style.left = Math.random() * 60 + 20 + '%';
+                piece.style.top = Math.random() * 60 + 20 + '%';
+                piece.dataset.pieceId = i;
+                
+                container.appendChild(piece);
+                rakhiPieces.push({
+                    element: piece,
+                    x: 0,
+                    y: 0,
+                    isNearWrist: false
+                });
+                
+                // Add touch and mouse events
+                addDragEvents(piece, i);
+            }
+        }
+
+        function addDragEvents(element, pieceIndex) {
+            let isDragging = false;
+            let startX, startY;
+
+            // Mouse events
+            element.addEventListener('mousedown', (e) => startDrag(e, pieceIndex));
+            document.addEventListener('mousemove', (e) => handleDrag(e, pieceIndex));
+            document.addEventListener('mouseup', () => endDrag(pieceIndex));
+
+            // Touch events for multi-touch
+            element.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startDrag(e.touches[0], pieceIndex);
+            });
+            
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (e.touches.length > 0) {
+                    handleDrag(e.touches[0], pieceIndex);
+                }
+            });
+            
+            document.addEventListener('touchend', () => endDrag(pieceIndex));
+
+            function startDrag(event, index) {
+                if (rakhiPieces[index]) {
+                    isDragging = true;
+                    activeTouch = index;
+                    startX = event.clientX;
+                    startY = event.clientY;
+                    element.style.zIndex = 101;
+                }
+            }
+
+            function handleDrag(event, index) {
+                if (!isDragging || activeTouch !== index) return;
+                
+                const deltaX = event.clientX - startX;
+                const deltaY = event.clientY - startY;
+                
+                rakhiPieces[index].x += deltaX;
+                rakhiPieces[index].y += deltaY;
+                
+                element.style.transform = `translate(${rakhiPieces[index].x}px, ${rakhiPieces[index].y}px)`;
+                
+                startX = event.clientX;
+                startY = event.clientY;
+                
+                checkWristProximity(index);
+            }
+
+            function endDrag(index) {
+                isDragging = false;
+                if (activeTouch === index) {
+                    activeTouch = null;
+                    element.style.zIndex = 100;
+                }
+            }
+        }
+
+        function checkWristProximity(pieceIndex) {
+            const piece = rakhiPieces[pieceIndex];
+            const handContainer = document.getElementById('handContainer');
+            const handRect = handContainer.getBoundingClientRect();
+            const pieceRect = piece.element.getBoundingClientRect();
+            
+            const wristCenterX = handRect.left + handRect.width * 0.5;
+            const wristCenterY = handRect.top + handRect.height * 0.7;
+            
+            const pieceCenterX = pieceRect.left + pieceRect.width / 2;
+            const pieceCenterY = pieceRect.top + pieceRect.height / 2;
+            
+            const distance = Math.sqrt(
+                Math.pow(wristCenterX - pieceCenterX, 2) + 
+                Math.pow(wristCenterY - pieceCenterY, 2)
+            );
+            
+            if (distance < 80 && !piece.isNearWrist) {
+                piece.isNearWrist = true;
+                tiedPieces++;
+                piece.element.style.border = '3px solid #feca57';
+                piece.element.style.boxShadow = '0 0 20px rgba(254, 202, 87, 0.8)';
+                
+                createThread(pieceIndex);
+                
+                if (tiedPieces >= 4) {
+                    document.getElementById('completeBtn').classList.add('visible');
+                    document.getElementById('instructions').textContent = 
+                        'Perfect! Your Rakhi is beautifully tied! Complete the ceremony! 🎀';
+                }
+            }
+        }
+
+        function createThread(pieceIndex) {
+            const container = document.getElementById('rakhiThreads');
+            const thread = document.createElement('div');
+            thread.className = 'rakhi-thread visible';
+            
+            const piece = rakhiPieces[pieceIndex];
+            const pieceRect = piece.element.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            
+            thread.style.left = (pieceRect.left - containerRect.left) + 'px';
+            thread.style.top = (pieceRect.top - containerRect.top + 20) + 'px';
+            thread.style.width = Math.random() * 100 + 50 + 'px';
+            thread.style.transform = `rotate(${Math.random() * 360}deg)`;
+            
+            container.appendChild(thread);
+        }
+
+        function rotateHand() {
+            handRotation += 90;
+            const container = document.getElementById('handContainer');
+            container.style.transform = `rotate(${handRotation}deg) scale(${handZoom})`;
+        }
+
+        function zoomHand() {
+            handZoom = handZoom === 1 ? 1.3 : 1;
+            const container = document.getElementById('handContainer');
+            container.style.transform = `rotate(${handRotation}deg) scale(${handZoom})`;
+        }
+
+        function completeRakhi() {
+            if (tiedPieces >= 4) {
+                document.getElementById('celebration').classList.add('visible');
+                gameState = 'completed';
+                
+                // Add confetti effect
+                createConfetti();
+            }
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.position = 'fixed';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.top = '-10px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.background = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3'][Math.floor(Math.random() * 4)];
+                    confetti.style.zIndex = '250';
+                    confetti.style.animation = 'fall 3s linear forwards';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 100);
+            }
+        }
+
+        function restartGame() {
+            // Reset everything
+            gameState = 'welcome';
+            selectedRakhi = null;
+            handRotation = 0;
+            handZoom = 1;
+            tiedPieces = 0;
+            rakhiPieces = [];
+            
+            // Reset UI
+            document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('handScreen').classList.remove('visible');
+            document.getElementById('rakhiSidebar').classList.remove('visible');
+            document.getElementById('controls').classList.remove('visible');
+            document.getElementById('celebration').classList.remove('visible');
+            document.getElementById('completeBtn').classList.remove('visible');
+            
+            document.querySelectorAll('.rakhi-icon').forEach(icon => 
+                icon.classList.remove('selected'));
+            
+            document.getElementById('rakhiElements').innerHTML = '';
+            document.getElementById('rakhiThreads').innerHTML = '';
+            
+            document.getElementById('instructions').textContent = 
+                'Select a beautiful Rakhi design from the right side! ✨';
+        }
+
+        // Add fall animation for confetti
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize
+        createStars();
+
+        // Prevent default touch behaviors for better game experience
+        document.addEventListener('touchmove', function(e) {
+            if (gameState === 'tying') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Handle multi-touch gestures
+        let touches = {};
+        
+        document.addEventListener('touchstart', function(e) {
+            if (gameState === 'tying') {
+                for (let i = 0; i < e.touches.length; i++) {
+                    touches[e.touches[i].identifier] = {
+                        x: e.touches[i].clientX,
+                        y: e.touches[i].clientY
+                    };
+                }
+            }
+        });
+
+        document.addEventListener('touchend', function(e) {
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                delete touches[e.changedTouches[i].identifier];
+            }
+        });
+    </script>
+</body>
+</html>
